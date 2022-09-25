@@ -27,4 +27,4 @@ That's it!
 6. `model_name_codes.txt` - relation between the codes and the different classes in the dataset
 7. `outputs_model_name` - saved model, which can be later reused for inference
 
-```python
+Enjoy using QuickFormer!
