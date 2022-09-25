@@ -58,17 +58,22 @@ def save_confusion_matrix(cm,
     else:
         plt.savefig(model_name + "_confusion_matrix.png")
 
-def quickform(model_name, model_type = "bert", model_huggingface_hub_name = "bert-base-german-cased", csv_file_address = None, min_sentence_length = 5, random_state = 1, train_percentage = 0.8, use_cuda = False, previous_model_name = None):
+def get_df_from_csv(csv_file_address, model_name):
     csv_file = csv_file_address
     if csv_file is None:
         csv_file = model_name + "_input.csv"
     df = pd.read_csv(csv_file)
-    df = df[df['text'].str.len() >= min_sentence_length]
-    df.columns = ['text', 'cat_label']
+    return df
+
+def shuffled_df(df, random_state):
+    new_df = None
     if random_state == None:
-        df = df.sample(frac=1)
+        new_df = df.sample(frac = 1)
     else:
-        df = df.sample(frac=1, random_state=random_state)
+        new_df = df.sample(frac = 1, random_state = random_state)
+    return new_df
+
+def categorize_df(df, model_name):
     df.cat_label = pd.Categorical(df.cat_label)
     classified_categories_raw = df.cat_label.cat.categories
     classified_categories = []
@@ -80,35 +85,36 @@ def quickform(model_name, model_type = "bert", model_huggingface_hub_name = "ber
         f.write(codes_str)
     df['label'] = df.cat_label.cat.codes
     df = df.drop(df.columns[[1]], axis = 1)
+    return df, classified_categories
+
+def split_train_test(df, train_percentage, model_name):
     last_index_of_training = int(len(df) * train_percentage)
     train_df = df[:last_index_of_training]
     test_df = df[last_index_of_training:]
     train_df.to_csv(model_name + '_train_data.csv', index = False)
     test_df.to_csv(model_name + '_test_data.csv', index = False)
-    print("QuickFormer - Preparing the model...")
-    num_labels = max(train_df.label) + 1
-    model = ClassificationModel(model_type, model_huggingface_hub_name, num_labels = num_labels, use_cuda = use_cuda)
-    print("QuickFormer - Training the model...")
-    model.train_model(train_df)
-    print("QuickFormer - Evaluating the model...")
+    return train_df, test_df
+
+def predict_model(model, test_df):
     all_texts = []
     for index, row in test_df.iterrows():
         all_texts.append(row["text"])
-    predictions, raw_outputs = model.predict(list(all_texts))
-    os.rename('outputs',  'outputs_' + model_name)
-    all_result_pairs = [] # [predicted, real]
+    predictions, _ = model.predict(list(all_texts))
+    return predictions
+
+def find_and_save_confusion_matrix(test_df, predictions, classified_categories, model_name):
     real = []
-    i = 0
-    for index, row in test_df.iterrows():
-        all_result_pairs.append([predictions[i], row["label"]])
+    for _, row in test_df.iterrows():
         real.append(row["label"])
-        i += 1
     matrix = confusion_matrix(real, predictions)
     save_confusion_matrix(matrix, classified_categories, model_name, normalize=False)
     save_confusion_matrix(matrix, classified_categories, model_name, normalize=True)
     matrix_string = '\n'.join('\t'.join('%0.3f' %x for x in y) for y in matrix) # https://stackoverflow.com/a/34349901/4915882
     with open(model_name + '_confusion_matrix.txt', 'w') as f:
         f.write(matrix_string)
+    return matrix
+
+def find_and_save_precision_recall_f1(num_labels, matrix, classified_categories, model_name):
     precision_recall_f1_string = ""
     for i in range(num_labels):
         sum_m_ji = 0
@@ -119,13 +125,34 @@ def quickform(model_name, model_type = "bert", model_huggingface_hub_name = "ber
         precision = matrix[i][i] / sum_m_ji
         recall = matrix[i][i] / sum_m_ij
         f1 = (2 * precision * recall) / (precision + recall)
-        precision_recall_f1_string += "Precision for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t\t\t" + str(precision) + "\n"
-        precision_recall_f1_string += "Recall for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t\t\t" + str(recall) + "\n"
-        precision_recall_f1_string += "F1 for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t\t\t" + str(f1) + "\n"
+        precision_recall_f1_string += "Precision for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t\t\t" + str(precision) + "\n" + "Recall for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t\t\t" + str(recall) + "\n" + "F1 for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t\t\t" + str(f1) + "\n"
     with open(model_name + '_precision_recall_f1.txt', 'w') as f:
         f.write(precision_recall_f1_string)
+
+def evaluate_model(model, model_name, classified_categories, test_df, num_labels):
+    predictions = predict_model(model, test_df)
+    matrix = find_and_save_confusion_matrix(test_df, predictions, classified_categories, model_name)
+    find_and_save_precision_recall_f1(num_labels, matrix, classified_categories, model_name)
+
+def cleanup_directory_names(model_name):
+    os.rename('outputs',  'outputs_' + model_name)
     os.rename('cache_dir',  'cache_dir_' + model_name)
     os.rename('runs',  'runs_' + model_name)
+
+def quickform(model_name, model_type = "bert", model_huggingface_hub_name = "bert-base-german-cased", csv_file = None, min_sentence_length = 5, random_state = 1, train_percentage = 0.8, use_cuda = False):
+    df = get_df_from_csv(csv_file, model_name)
+    df = df[df['text'].str.len() >= min_sentence_length]
+    df.columns = ['text', 'cat_label']
+    df = shuffled_df(df, random_state)
+    df, classified_categories = categorize_df(df, model_name)
+    train_df, test_df = split_train_test(df, train_percentage, model_name)
+    print("QuickFormer - Preparing the model...")
+    num_labels = max(train_df.label) + 1
+    model = ClassificationModel(model_type, model_huggingface_hub_name, num_labels = num_labels, use_cuda = use_cuda)
+    print("QuickFormer - Training the model...")
+    model.train_model(train_df)
+    print("QuickFormer - Evaluating the model...")
+    evaluate_model(model, model_name, classified_categories, test_df, num_labels)
     print("Thank you for using QuickFormer!")
 
 
