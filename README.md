@@ -12,7 +12,7 @@ QuickFormer allows you to:
 
 1. Prepare your initial data in a CSV file with the columns `text` and `cat_label`. Name the file `model_name_input.csv` where `model_name` is an arbitrary name.
 
-2. Call the `quickform()` function. The only mandatory argument is the model name (`model_name`). The function will automatically load the data from the CSV file, train the model, evaluate it and saves all the results in files and directories starting with `model_name`.
+2. Call the `quickform()` function. The only mandatory argument is the model name (`model_name`). The function will automatically load the data from the CSV file, train the model, evaluate it and saves all the results in files starting with `model_name`.
 
 That's it!
 
