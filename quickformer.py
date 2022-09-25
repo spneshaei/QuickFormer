@@ -139,7 +139,7 @@ def cleanup_directory_names(model_name):
     os.rename('cache_dir',  'cache_dir_' + model_name)
     os.rename('runs',  'runs_' + model_name)
 
-def quickform(model_name, model_type = "bert", model_huggingface_hub_name = "bert-base-german-cased", csv_file = None, min_sentence_length = 5, random_state = 1, train_percentage = 0.8, use_cuda = False):
+def quickform(model_name, model_type = "bert", model_huggingface_hub_name = "bert-base-uncased", csv_file = None, min_sentence_length = 5, random_state = 1, train_percentage = 0.8, use_cuda = False):
     df = get_df_from_csv(csv_file, model_name)
     df = df[df['text'].str.len() >= min_sentence_length]
     df.columns = ['text', 'cat_label']
