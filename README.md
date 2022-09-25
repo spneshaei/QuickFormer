@@ -21,7 +21,10 @@ That's it!
 1. `model_name_train_data.csv` - the data used for training
 2. `model_name_test_data.csv` - the data used for testing
 3. `model_name_confusion_matrix.png` - a visualization of the confusion matrix
-3. `model_name_confusion_matrix.txt` - the raw data of the confusion matrix
-3. `model_name_precision_recall_f1.txt` - the data for precision, recall, and F1 score for each of the classes
+3. `model_name_confusion_matrix_normalized.png` - a visualization of the confusion matrix with normalized values
+4. `model_name_confusion_matrix.txt` - the raw data of the confusion matrix
+5. `model_name_precision_recall_f1.txt` - the data for precision, recall, and F1 score for each of the classes
+6. `model_name_codes.txt` - relation between the codes and the different classes in the dataset
+7. `outputs_model_name` - saved model, which can be later reused for inference
 
 ```python
