@@ -58,7 +58,7 @@ def save_confusion_matrix(cm,
     else:
         plt.savefig(model_name + "_confusion_matrix.png")
 
-def quickform(model_name, model_type = "bert", model_huggingface_hub_name = "bert-base-german-cased", csv_file_address = None, min_sentence_length = 5, random_state = 1, train_percentage = 0.8, use_cuda = False):
+def quickform(model_name, model_type = "bert", model_huggingface_hub_name = "bert-base-german-cased", csv_file_address = None, min_sentence_length = 5, random_state = 1, train_percentage = 0.8, use_cuda = False, previous_model_name = None):
     csv_file = csv_file_address
     if csv_file is None:
         csv_file = model_name + "_input.csv"
@@ -119,12 +119,15 @@ def quickform(model_name, model_type = "bert", model_huggingface_hub_name = "ber
         precision = matrix[i][i] / sum_m_ji
         recall = matrix[i][i] / sum_m_ij
         f1 = (2 * precision * recall) / (precision + recall)
-        precision_recall_f1_string += "Precision for class", i, "corresponding to", classified_categories[i], "=>\t", precision + "\n"
-        precision_recall_f1_string += "Recall for class", i, "corresponding to", classified_categories[i], "=>\t", recall + "\n"
-        precision_recall_f1_string += "F1 score for class", i, "corresponding to", classified_categories[i], "=>\t", f1 + "\n"
+        precision_recall_f1_string += "Precision for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t\t\t" + str(precision) + "\n"
+        precision_recall_f1_string += "Recall for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t\t\t" + str(recall) + "\n"
+        precision_recall_f1_string += "F1 for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t\t\t" + str(f1) + "\n"
     with open(model_name + '_precision_recall_f1.txt', 'w') as f:
         f.write(precision_recall_f1_string)
-
+    os.rename('cache_dir',  'cache_dir_' + model_name)
+    os.rename('runs',  'runs_' + model_name)
     print("Thank you for using QuickFormer!")
 
 
+if __name__ == "__main__":
+    quickform("test")

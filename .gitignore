@@ -1,0 +1,7 @@
+/cache_dir_*
+/outputs_*
+/runs_*
+*.csv
+*.txt
+*.png
+.DS_Store
