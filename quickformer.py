@@ -125,7 +125,7 @@ def find_and_save_precision_recall_f1(num_labels, matrix, classified_categories,
         precision = matrix[i][i] / sum_m_ji
         recall = matrix[i][i] / sum_m_ij
         f1 = (2 * precision * recall) / (precision + recall)
-        precision_recall_f1_string += "Precision for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t\t\t" + str(precision) + "\n" + "Recall for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t\t\t" + str(recall) + "\n" + "F1 for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t\t\t" + str(f1) + "\n"
+        precision_recall_f1_string += "Precision for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t" + str(precision) + "\n" + "Recall for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t" + str(recall) + "\n" + "F1 for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t" + str(f1) + "\n"
     with open(model_name + '_precision_recall_f1.txt', 'w') as f:
         f.write(precision_recall_f1_string)
 

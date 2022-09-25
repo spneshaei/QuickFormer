@@ -1,6 +1,6 @@
-/cache_dir_*
-/outputs_*
-/runs_*
+/cache_dir*
+/outputs*
+/runs*
 *.csv
 *.txt
 *.png
