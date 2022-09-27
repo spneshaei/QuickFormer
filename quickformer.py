@@ -1,3 +1,4 @@
+from distutils.command.clean import clean
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -128,7 +129,10 @@ def find_and_save_precision_recall_f1(num_labels, matrix, classified_categories,
         precision_recall_f1_string += "Precision for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t" + str(precision) + "\n" + "Recall for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t" + str(recall) + "\n" + "F1 for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t" + str(f1) + "\n"
     precision_recall_f1_string += "\nAccuracy of the model =>\t" + str(accuracy_score(real, predictions)) + "\n"
     precision_recall_f1_string += "Balanced Accuracy of the model =>\t" + str(balanced_accuracy_score(real, predictions)) + "\n"
-    precision_recall_f1_string += "Jaccard Similarity Coefficient of the model =>\t" + str(jaccard_score(real, predictions)) + "\n"
+    if len(classified_categories) == 2:
+        precision_recall_f1_string += "Jaccard Similarity Coefficient of the model =>\t" + str(jaccard_score(real, predictions)) + "\n"
+    else:
+        precision_recall_f1_string += "Jaccard Similarity Coefficient (average = 'micro') of the model =>\t" + str(jaccard_score(real, predictions, average='micro')) + "\n"
     precision_recall_f1_string += "Hamming Loss of the model =>\t" + str(hamming_loss(real, predictions)) + "\n"
     precision_recall_f1_string += "Zero-one Loss of the model =>\t" + str(zero_one_loss(real, predictions)) + "\n"
     with open(model_name + '_precision_recall_f1.txt', 'w') as f:
@@ -158,6 +162,7 @@ def quickform(model_name, model_type = "bert", model_huggingface_hub_name = "ber
     model.train_model(train_df, overwrite_output_dir = True)
     print("QuickFormer - Evaluating the model...")
     evaluate_model(model, model_name, classified_categories, test_df, num_labels)
+    cleanup_directory_names(model_name)
     print("Thank you for using QuickFormer!")
 
 
