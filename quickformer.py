@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from simpletransformers.classification import ClassificationModel
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, accuracy_score
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, accuracy_score, balanced_accuracy_score, jaccard_score, hamming_loss, zero_one_loss
 import numpy as np
 import itertools
 import numpy as np
@@ -127,6 +127,10 @@ def find_and_save_precision_recall_f1(num_labels, matrix, classified_categories,
         f1 = (2 * precision * recall) / (precision + recall)
         precision_recall_f1_string += "Precision for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t" + str(precision) + "\n" + "Recall for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t" + str(recall) + "\n" + "F1 for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t" + str(f1) + "\n"
     precision_recall_f1_string += "\nAccuracy of the model =>\t" + str(accuracy_score(real, predictions)) + "\n"
+    precision_recall_f1_string += "Balanced Accuracy of the model =>\t" + str(balanced_accuracy_score(real, predictions)) + "\n"
+    precision_recall_f1_string += "Jaccard Similarity Coefficient of the model =>\t" + str(jaccard_score(real, predictions)) + "\n"
+    precision_recall_f1_string += "Hamming Loss of the model =>\t" + str(hamming_loss(real, predictions)) + "\n"
+    precision_recall_f1_string += "Zero-one Loss of the model =>\t" + str(zero_one_loss(real, predictions)) + "\n"
     with open(model_name + '_precision_recall_f1.txt', 'w') as f:
         f.write(precision_recall_f1_string)
 
