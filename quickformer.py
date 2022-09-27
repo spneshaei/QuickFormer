@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from simpletransformers.classification import ClassificationModel
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, accuracy_score
 import numpy as np
 import itertools
 import numpy as np
@@ -112,9 +112,9 @@ def find_and_save_confusion_matrix(test_df, predictions, classified_categories, 
     matrix_string = '\n'.join('\t'.join('%0.3f' %x for x in y) for y in matrix) # https://stackoverflow.com/a/34349901/4915882
     with open(model_name + '_confusion_matrix.txt', 'w') as f:
         f.write(matrix_string)
-    return matrix
+    return matrix, real
 
-def find_and_save_precision_recall_f1(num_labels, matrix, classified_categories, model_name):
+def find_and_save_precision_recall_f1(num_labels, matrix, classified_categories, model_name, real, predictions):
     precision_recall_f1_string = ""
     for i in range(num_labels):
         sum_m_ji = 0
@@ -126,20 +126,21 @@ def find_and_save_precision_recall_f1(num_labels, matrix, classified_categories,
         recall = matrix[i][i] / sum_m_ij
         f1 = (2 * precision * recall) / (precision + recall)
         precision_recall_f1_string += "Precision for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t" + str(precision) + "\n" + "Recall for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t" + str(recall) + "\n" + "F1 for class " + str(i) + " corresponding to " + str(classified_categories[i]) + " =>\t" + str(f1) + "\n"
+    precision_recall_f1_string += "\nAccuracy of the model =>\t" + str(accuracy_score(real, predictions)) + "\n"
     with open(model_name + '_precision_recall_f1.txt', 'w') as f:
         f.write(precision_recall_f1_string)
 
 def evaluate_model(model, model_name, classified_categories, test_df, num_labels):
     predictions = predict_model(model, test_df)
-    matrix = find_and_save_confusion_matrix(test_df, predictions, classified_categories, model_name)
-    find_and_save_precision_recall_f1(num_labels, matrix, classified_categories, model_name)
+    matrix, real = find_and_save_confusion_matrix(test_df, predictions, classified_categories, model_name)
+    find_and_save_precision_recall_f1(num_labels, matrix, classified_categories, model_name, real, predictions)
 
 def cleanup_directory_names(model_name):
     os.rename('outputs',  'outputs_' + model_name)
     os.rename('cache_dir',  'cache_dir_' + model_name)
     os.rename('runs',  'runs_' + model_name)
 
-def quickform(model_name, model_type = "bert", model_huggingface_hub_name = "bert-base-uncased", csv_file = None, min_sentence_length = 5, random_state = 1, train_percentage = 0.8, use_cuda = False):
+def quickform(model_name, model_type = "bert", model_huggingface_hub_name = "bert-base-german-cased", csv_file = None, min_sentence_length = 5, random_state = 1, train_percentage = 0.8, use_cuda = False):
     df = get_df_from_csv(csv_file, model_name)
     df = df[df['text'].str.len() >= min_sentence_length]
     df.columns = ['text', 'cat_label']
@@ -150,7 +151,7 @@ def quickform(model_name, model_type = "bert", model_huggingface_hub_name = "ber
     num_labels = max(train_df.label) + 1
     model = ClassificationModel(model_type, model_huggingface_hub_name, num_labels = num_labels, use_cuda = use_cuda)
     print("QuickFormer - Training the model...")
-    model.train_model(train_df)
+    model.train_model(train_df, overwrite_output_dir = True)
     print("QuickFormer - Evaluating the model...")
     evaluate_model(model, model_name, classified_categories, test_df, num_labels)
     print("Thank you for using QuickFormer!")
